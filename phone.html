@@ -18,13 +18,13 @@ let pc = new RTCPeerConnection();
 
 startBtn.onclick = async () => {
     try {
-        // Request screen capture
+        // Request mobile screen capture
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
 
-        // Add track to connection
+        // Add tracks to connection
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-        // Get the offer from localStorage (laptop)
+        // Get offer from laptop
         const offer = JSON.parse(localStorage.getItem("offer-" + room));
         await pc.setRemoteDescription(offer);
 
@@ -32,7 +32,7 @@ startBtn.onclick = async () => {
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
 
-        // Store answer in localStorage for laptop to pick up
+        // Store answer for laptop to pick up
         localStorage.setItem("answer-" + room, JSON.stringify(answer));
 
         alert("Screen sharing started!");
