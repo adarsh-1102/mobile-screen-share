@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mobile Screen Share</title>
+</head>
+<body style="text-align:center;font-family:Arial;margin-top:50px;">
+
+<h2>Mobile Screen Sharing</h2>
+<button id="start">Start Screen Share</button>
+
+<script>
+const startBtn = document.getElementById("start");
+const params = new URLSearchParams(window.location.search);
+const room = params.get("room");
+
+// --- WebRTC setup ---
+let pc = new RTCPeerConnection();
+
+startBtn.onclick = async () => {
+    try {
+        // Request screen capture
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+
+        // Add track to connection
+        stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+        // Get the offer from localStorage (laptop)
+        const offer = JSON.parse(localStorage.getItem("offer-" + room));
+        await pc.setRemoteDescription(offer);
+
+        // Create answer
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        // Store answer in localStorage for laptop to pick up
+        localStorage.setItem("answer-" + room, JSON.stringify(answer));
+
+        alert("Screen sharing started!");
+    } catch (err) {
+        alert("Screen share failed: " + err);
+    }
+};
+</script>
+
+</body>
+</html>
