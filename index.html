@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Laptop View - Mobile Screen</title>
+</head>
+<body style="text-align:center;font-family:Arial;margin-top:50px;">
+
+<h2>Scan this QR with your mobile</h2>
+<div id="qr"></div>
+
+<h3>Mobile Screen:</h3>
+<video id="screen" autoplay playsinline style="width:90%;border:2px solid black;border-radius:10px;"></video>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+const screenVideo = document.getElementById("screen");
+const room = Math.random().toString(36).substring(2, 8);
+const url = "https://YOUR_USERNAME.github.io/mobile-screen-share"; // replace with your GitHub Pages URL
+
+// Generate QR pointing to phone page
+new QRCode(document.getElementById("qr"), `${url}/phone.html?room=${room}`);
+
+// --- WebRTC setup ---
+let pc = new RTCPeerConnection();
+
+// Receive remote track
+pc.ontrack = e => {
+    screenVideo.srcObject = e.streams[0];
+};
+
+// ICE candidates
+pc.onicecandidate = e => {
+    if(e.candidate) {
+        localStorage.setItem("ice-" + room, JSON.stringify(e.candidate));
+    }
+};
+
+// Show offer SDP in localStorage for mobile to pick up
+(async function createOffer() {
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    localStorage.setItem("offer-" + room, JSON.stringify(offer));
+})();
+</script>
+
+</body>
+</html>
