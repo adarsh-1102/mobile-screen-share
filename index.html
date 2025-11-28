@@ -16,7 +16,7 @@
 <script>
 const screenVideo = document.getElementById("screen");
 const room = Math.random().toString(36).substring(2, 8);
-const url = "https://YOUR_USERNAME.github.io/mobile-screen-share"; // replace with your GitHub Pages URL
+const url = "https://YOUR_USERNAME.github.io/mobile-screen-share"; // Replace with your GitHub Pages URL
 
 // Generate QR pointing to phone page
 new QRCode(document.getElementById("qr"), `${url}/phone.html?room=${room}`);
@@ -29,18 +29,21 @@ pc.ontrack = e => {
     screenVideo.srcObject = e.streams[0];
 };
 
-// ICE candidates
-pc.onicecandidate = e => {
-    if(e.candidate) {
-        localStorage.setItem("ice-" + room, JSON.stringify(e.candidate));
-    }
-};
-
-// Show offer SDP in localStorage for mobile to pick up
+// Create offer
 (async function createOffer() {
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     localStorage.setItem("offer-" + room, JSON.stringify(offer));
+
+    // Poll for answer from mobile
+    const checkAnswer = setInterval(async () => {
+        const answerStr = localStorage.getItem("answer-" + room);
+        if(answerStr) {
+            const answer = JSON.parse(answerStr);
+            await pc.setRemoteDescription(answer);
+            clearInterval(checkAnswer);
+        }
+    }, 1000);
 })();
 </script>
 
